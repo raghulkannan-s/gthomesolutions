@@ -71,7 +71,7 @@ export async function POST(req) {
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: EMAILS.developer,
+      to: TO_EMAILS,
       subject: `New Estimation Request - ${data.name}`,
       react: EmailTemplate({
         name: data.name,
