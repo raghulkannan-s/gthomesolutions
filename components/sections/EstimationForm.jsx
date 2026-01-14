@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/Button";
 
-export function EstimationForm() {
+export default function EstimationForm({ embedded = false, anchorId = "estimation" }) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -12,23 +11,34 @@ export function EstimationForm() {
     message: "",
     honeypot: "",
   });
+
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [errorMessage, setErrorMessage] = useState("");
+
+  const isLoading = status === "loading";
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (formData.name.length < 2) {
+    const name = formData.name.trim();
+    const phone = formData.phone.replace(/\s+/g, "").trim();
+    const location = formData.location.trim();
+    const message = formData.message.trim();
+
+    if (name.length < 2) {
       newErrors.name = "Name must be at least 2 characters";
     }
-    if (!/^[0-9+\-\s]{10,}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
+
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      newErrors.phone = "Enter a valid 10-digit Indian mobile number";
     }
-    if (formData.location.length < 3) {
+
+    if (location.length < 3) {
       newErrors.location = "Please enter your location";
     }
-    if (formData.message.length < 10) {
+
+    if (message.length < 10) {
       newErrors.message = "Message must be at least 10 characters";
     }
 
@@ -39,29 +49,41 @@ export function EstimationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.honeypot) {
-      return;
-    }
+    // honeypot trap
+    if (formData.honeypot) return;
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setStatus("loading");
     setErrorMessage("");
+
+    const payload = {
+      name: formData.name.trim(),
+      phone: formData.phone.replace(/\s+/g, "").trim(),
+      location: formData.location.trim(),
+      message: formData.message.trim(),
+      honeypot: formData.honeypot,
+    };
 
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
 
       if (result.success) {
         setStatus("success");
-        setFormData({ name: "", phone: "", location: "", message: "", honeypot: "" });
+        setFormData({
+          name: "",
+          phone: "",
+          location: "",
+          message: "",
+          honeypot: "",
+        });
+        setErrors({});
       } else {
         setStatus("error");
         setErrorMessage(result.error || "Something went wrong. Please try again.");
@@ -74,189 +96,241 @@ export function EstimationForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  return (
-    <section id="estimation" className="py-16 md:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          title="Get Free Estimation"
-          subtitle="Fill the form below and we'll get back to you within 24 hours with a detailed quote."
-        />
-        <div className="max-w-xl mx-auto">
-          {status === "success" ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
-              <span className="text-5xl mb-4 block">✅</span>
-              <h3 className="text-xl font-semibold text-green-800 mb-2">
-                Request Submitted Successfully!
+  const content = (
+    <div className={embedded ? "w-full" : "max-w-xl mx-auto"}>
+      {status === "success" ? (
+        <div
+          className={`${
+            embedded ? "bg-white/95" : "bg-green-50"
+          } border ${
+            embedded ? "border-white/20" : "border-green-200"
+          } rounded-xl p-6 text-center`}
+        >
+          <span className="text-4xl mb-3 block">✅</span>
+
+          <h3
+            className={`text-lg font-semibold ${
+              embedded ? "text-[#1e3a5f]" : "text-green-800"
+            } mb-2`}
+          >
+            Request Submitted Successfully!
+          </h3>
+
+          <p className={embedded ? "text-gray-700 text-sm" : "text-green-700 text-sm"}>
+            Thank you. We&apos;ll contact you soon.
+          </p>
+
+          <Button
+            onClick={() => setStatus("idle")}
+            variant="primary"
+            className="mt-5"
+          >
+            Submit Another Request
+          </Button>
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          className={`${
+            embedded
+              ? "bg-white/70 backdrop-blur-md shadow-xl ring-1 ring-white/20"
+              : "bg-gray-50 border border-gray-200"
+          } p-5 sm:p-6 rounded-xl space-y-4`}
+        >
+          {/* Honeypot (offscreen field) */}
+          <div
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              top: "auto",
+              width: "1px",
+              height: "1px",
+              overflow: "hidden",
+            }}
+          >
+            <label htmlFor="company">Company</label>
+            <input
+              id="company"
+              type="text"
+              name="honeypot"
+              value={formData.honeypot}
+              onChange={handleChange}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
+          {/* Form Title (only when embedded) */}
+          {embedded && (
+            <div className="mb-1">
+              <h3 className="text-base font-semibold text-gray-900">
+                Get Free Estimation
               </h3>
-              <p className="text-green-600">
-                Thank you for your interest. We&apos;ll contact you within 24 hours.
+              <p className="text-xs text-gray-600 mt-1">
+                Fill the details. We&apos;ll call you back.
               </p>
-              <Button
-                onClick={() => setStatus("idle")}
-                variant="primary"
-                className="mt-6"
-              >
-                Submit Another Request
-              </Button>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="bg-gray-50 p-8 rounded-xl space-y-6">
+          )}
+
+          {/* Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Name */}
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Name *
+              </label>
               <input
                 type="text"
-                name="honeypot"
-                value={formData.honeypot}
+                id="name"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
-                className="hidden"
-                tabIndex={-1}
-                autoComplete="off"
-                aria-hidden="true"
+                disabled={isLoading}
+                autoComplete="name"
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
+                  errors.name ? "border-red-500" : "border-gray-300"
+                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
+                placeholder="Your name"
+                required
               />
-
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
-                    errors.name ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Your name"
-                  required
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="phone"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Contact Number *
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
-                    errors.phone ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Your phone number"
-                  required
-                />
-                {errors.phone && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Location *
-                </label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
-                    errors.location ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Your location in Chennai"
-                  required
-                />
-                {errors.location && (
-                  <p className="text-red-500 text-sm mt-1">{errors.location}</p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Message *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={4}
-                  value={formData.message}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition resize-none ${
-                    errors.message ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Describe your requirements (e.g., 2BHK interior painting, terrace waterproofing...)"
-                  required
-                />
-                {errors.message && (
-                  <p className="text-red-500 text-sm mt-1">{errors.message}</p>
-                )}
-              </div>
-
-              {status === "error" && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600 text-sm">
-                  {errorMessage}
-                </div>
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
               )}
+            </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full py-4 text-lg"
-                disabled={status === "loading"}
+            {/* Phone */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
-                {status === "loading" ? (
-                  <>
-                    <svg
-                      className="animate-spin h-5 w-5 mr-2"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      />
-                    </svg>
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Request"
-                )}
-              </Button>
-            </form>
+                Contact Number *
+              </label>
+              <input
+                type="tel"
+                inputMode="numeric"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                disabled={isLoading}
+                autoComplete="tel"
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
+                  errors.phone ? "border-red-500" : "border-gray-300"
+                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
+                placeholder="10-digit mobile number"
+                required
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+              )}
+            </div>
+
+            {/* Location (full width) */}
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="location"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Location *
+              </label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                disabled={isLoading}
+                autoComplete="address-level2"
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
+                  errors.location ? "border-red-500" : "border-gray-300"
+                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
+                placeholder="Your location in Chennai"
+                required
+              />
+              {errors.location && (
+                <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+              )}
+            </div>
+
+            {/* Message (full width) */}
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="message"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Message *
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                rows={3}
+                value={formData.message}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition resize-none ${
+                  errors.message ? "border-red-500" : "border-gray-300"
+                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
+                placeholder="Example: 2BHK interior painting, terrace waterproofing..."
+                required
+              />
+              {errors.message && (
+                <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+              )}
+            </div>
+          </div>
+
+          {status === "error" && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+              {errorMessage}
+            </div>
           )}
-        </div>
+
+          {/* Submit button RIGHT aligned */}
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              variant="primary"
+              className="px-6 py-3 text-base flex items-center justify-center gap-2"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Request"
+              )}
+            </Button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <div id={anchorId} className="w-full">
+        {content}
       </div>
+    );
+  }
+
+  return (
+    <section id={anchorId} className="py-16 md:py-24 bg-white">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">{content}</div>
     </section>
   );
 }

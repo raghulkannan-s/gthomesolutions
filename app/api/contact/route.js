@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { contactSchema } from "@/lib/validation";
-import { siteConfig } from "@/lib/site";
 import EmailTemplate from "@/components/email/template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const EMAILS = {
-  developer: "raghulkannan005@gmail.com",
-  admin: "admin@gthomesolution.in",
-  founder: siteConfig.founderEmail,
-  contact: siteConfig.email,
-}
-
-const TO_EMAILS = [ EMAILS.developer, EMAILS.founder, EMAILS.contact, EMAILS.admin ];
-
 const FROM_EMAIL = `GT Home Solution <contact@gthomesolution.in>`;
 
 const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW = 60000;
+const RATE_LIMIT_WINDOW = 60 * 1000;
 const MAX_REQUESTS = 5;
 
 function checkRateLimit(ip) {
@@ -71,7 +61,8 @@ export async function POST(req) {
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: EMAILS.developer,
+      to: ["contact@gthomesolution.in"],
+      bcc: ["admin@gthomesolution.in"],
       subject: `New Estimation Request - ${data.name}`,
       react: EmailTemplate({
         name: data.name,
