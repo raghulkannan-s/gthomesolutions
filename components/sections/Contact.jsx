@@ -59,7 +59,7 @@ export function Contact() {
 
           <div className="bg-white p-4 rounded-xl shadow-sm">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.0892!2d80.2436!3d12.9716!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a525d954c0f5d4f%3A0x5f5f5f5f5f5f5f5f!2sTharamani%2C%20Chennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1234567890"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d971.971130852977!2d80.24203786955356!3d12.979237006050452!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a525d7aafc20657%3A0x5b02d155e785a954!2sChozhamannan%20St%2C%20MGR%20Salai%2C%20Periyar%20Nagar%2C%20Tharamani%2C%20Chennai%2C%20Tamil%20Nadu%20600113!5e0!3m2!1sen!2sin!4v1768390432314!5m2!1sen!2sin"
               width="100%"
               height="400"
               style={{ border: 0 }}

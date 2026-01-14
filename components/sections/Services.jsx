@@ -6,33 +6,54 @@ export function Services() {
   return (
     <section id="services" className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Painting */}
         <SectionHeading
           title="Painting Services"
-          subtitle="Premium quality painting solutions for every surface of your home."
+          subtitle="Clean finish, smooth coating, and long-lasting results for every room and surface."
         />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
+
+        <div className="flex flex-wrap justify-center gap-6 mb-16">
           {paintingServices.map((service, index) => (
-            <ServiceCard key={index} {...service} />
+            <div
+              key={index}
+              className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]"
+            >
+              <ServiceCard {...service} />
+            </div>
           ))}
         </div>
 
+        {/* Civil */}
         <SectionHeading
           title="Civil & Renovation Work"
-          subtitle="Complete home improvement and repair services."
+          subtitle="Repairs, upgrades, and renovation work done neatly with proper finishing."
         />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+
+        <div className="flex flex-wrap justify-center gap-6 mb-16">
           {civilServices.map((service, index) => (
-            <ServiceCard key={index} {...service} />
+            <div
+              key={index}
+              className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
+            >
+              <ServiceCard {...service} />
+            </div>
           ))}
         </div>
 
+        {/* Add-on */}
         <SectionHeading
           title="Add-on Services"
-          subtitle="Additional services to complete your home improvement project."
+          subtitle="Carpentry and electrical support to complete the job without extra coordination."
         />
-        <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+
+        <div className="flex flex-wrap justify-center gap-6 max-w-2xl mx-auto">
           {addonServices.map((service, index) => (
-            <ServiceCard key={index} {...service} />
+            <div
+              key={index}
+              className="w-full sm:w-[calc(50%-12px)]"
+            >
+              <ServiceCard {...service} />
+            </div>
           ))}
         </div>
       </div>

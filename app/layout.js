@@ -83,7 +83,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className="scroll-smooth">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/public/header.png" />
+        <link rel="apple-touch-icon" href="/public/brand/header-logo.png" />
       </head>
       <body
         className={`${inter.variable} ${poppins.variable} font-sans antialiased bg-white text-gray-900`}
