@@ -15,7 +15,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50  backdrop-blur-xs ">
+    <header className=" bg-white md:bg-white/0 fixed top-0 left-0 right-0 z-50  backdrop-blur-xs ">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* <TopLine /> */}
@@ -77,7 +77,7 @@ export function Header() {
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-200">
+          <div className="md:hidden pb-4 border-t bg-white border-gray-200">
             {/* Mobile contact row */}
             <div className="pt-4 flex flex-col gap-3 text-sm text-gray-700">
               <a
