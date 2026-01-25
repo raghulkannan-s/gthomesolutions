@@ -15,7 +15,7 @@ export function About() {
             />
             <p className="text-gray-200 mb-4 leading-relaxed">
               Founded by{" "}
-              <strong className="text-amber-400">{siteConfig.founder}</strong> in{" "}
+              <strong className="text-amber-400">{siteConfig.founder}</strong> ({siteConfig.experience} experience) in{" "}
               {siteConfig.established}, GT Home Solution has quickly established itself
               as a trusted name in home improvement services across Chennai.
             </p>
