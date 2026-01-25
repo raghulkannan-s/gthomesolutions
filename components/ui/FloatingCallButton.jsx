@@ -38,7 +38,7 @@ export default function FloatingCallButton() {
   return (
     <div
       ref={wrapperRef}
-      className="fixed bottom-5 right-5 z-[9999] flex flex-col items-end justify-end"
+      className="fixed bottom-5 right-5 z-50 flex flex-col items-end justify-end"
     >
       {/* Action buttons */}
       <div
