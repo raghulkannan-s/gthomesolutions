@@ -1,6 +1,8 @@
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 
+import FloatingCallButton from "@/components/ui/FloatingCallButton";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -89,6 +91,7 @@ export default function RootLayout({ children }) {
         className={`${inter.variable} ${poppins.variable} font-sans antialiased bg-white text-gray-900`}
       >
         {children}
+         <FloatingCallButton />
       </body>
     </html>
   );
