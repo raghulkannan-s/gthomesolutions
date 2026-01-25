@@ -141,7 +141,7 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
           onSubmit={handleSubmit}
           className={`${
             embedded
-              ? "bg-white/70 backdrop-blur-md shadow-xl ring-1 ring-white/20"
+              ? "bg-white/85 backdrop-blur-md shadow-xl ring-1 ring-white/20"
               : "bg-gray-50 border border-gray-200"
           } p-5 sm:p-6 rounded-xl space-y-4`}
         >
