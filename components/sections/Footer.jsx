@@ -29,7 +29,7 @@ export function Footer() {
               ))}
               <li>
                 <Link
-                  href="#estimation"
+                  href="/"
                   className="text-gray-300 hover:text-white transition text-sm"
                 >
                   Get Estimation
