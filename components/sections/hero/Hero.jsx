@@ -47,14 +47,14 @@ export default function Hero() {
           <div className="flex items-center gap-2">
             {siteConfig.socialLinks?.map((item) => {
               const Icon = SocialIcons?.[item.iconKey];
-              if (!Icon) return null;
+              if (!Icon || !item?.href) return null;
 
               return (
                 <a
                   key={item.key}
                   href={item.href}
-                  target={item.target}
-                  rel={item.rel}
+                  target={item.target || "_blank"}
+                  rel={item.rel || "noopener noreferrer"}
                   aria-label={item.ariaLabel}
                   className={[
                     "inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition p-2",

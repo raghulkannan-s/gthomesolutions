@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-export default function EstimationForm({ embedded = false, anchorId = "estimation" }) {
+export default function EstimationForm({
+  embedded = false,
+  anchorId = "estimation",
+}) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -13,16 +16,18 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
   });
 
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [status, setStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const isLoading = status === "loading";
+
+  /* --------------------------- Validation --------------------------- */
 
   const validateForm = () => {
     const newErrors = {};
 
     const name = formData.name.trim();
-    const phone = formData.phone.replace(/\s+/g, "").trim();
+    const phone = formData.phone.replace(/\D/g, "").slice(-10);
     const location = formData.location.trim();
     const message = formData.message.trim();
 
@@ -46,10 +51,26 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
     return Object.keys(newErrors).length === 0;
   };
 
+  /* --------------------------- Change Handler --------------------------- */
+
+  const handleChange = (
+    e
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  /* --------------------------- Submit Handler --------------------------- */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // honeypot trap
+    // Honeypot bot trap
     if (formData.honeypot) return;
 
     if (!validateForm()) return;
@@ -59,10 +80,9 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
 
     const payload = {
       name: formData.name.trim(),
-      phone: formData.phone.replace(/\s+/g, "").trim(),
+      phone: formData.phone.replace(/\D/g, "").slice(-10),
       location: formData.location.trim(),
       message: formData.message.trim(),
-      honeypot: formData.honeypot,
     };
 
     try {
@@ -72,39 +92,39 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setStatus("success");
-        setFormData({
-          name: "",
-          phone: "",
-          location: "",
-          message: "",
-          honeypot: "",
-        });
-        setErrors({});
-      } else {
-        setStatus("error");
-        setErrorMessage(result.error || "Something went wrong. Please try again.");
+      if (!response.ok) {
+        throw new Error("Server error. Try again.");
       }
-    } catch {
+
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error("Invalid server response.");
+      }
+
+      if (!result.success) {
+        throw new Error(result.error || "Submission failed.");
+      }
+
+      setStatus("success");
+      setFormData({
+        name: "",
+        phone: "",
+        location: "",
+        message: "",
+        honeypot: "",
+      });
+      setErrors({});
+    } catch (err) {
       setStatus("error");
-      setErrorMessage("Failed to submit. Please try again or call us directly.");
+      setErrorMessage(err.message || "Submission failed.");
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  /* --------------------------- UI --------------------------- */
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const content = (
+  const formUI = (
     <div className={embedded ? "w-full" : "max-w-xl mx-auto"}>
       {status === "success" ? (
         <div
@@ -114,7 +134,7 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
             embedded ? "border-white/20" : "border-green-200"
           } rounded-xl p-6 text-center`}
         >
-          <span className="text-4xl mb-3 block">✅</span>
+          <div className="text-4xl mb-3">✅</div>
 
           <h3
             className={`text-lg font-semibold ${
@@ -124,8 +144,12 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
             Request Submitted Successfully!
           </h3>
 
-          <p className={embedded ? "text-gray-700 text-sm" : "text-green-700 text-sm"}>
-            Thank you. We&apos;ll contact you soon.
+          <p
+            className={
+              embedded ? "text-gray-700 text-sm" : "text-green-700 text-sm"
+            }
+          >
+            We will contact you shortly.
           </p>
 
           <Button
@@ -141,24 +165,13 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
           onSubmit={handleSubmit}
           className={`${
             embedded
-              ? "bg-white/85 backdrop-blur-md shadow-xl ring-1 ring-white/20"
+              ? "bg-white/90 backdrop-blur-md shadow-xl ring-1 ring-white/20"
               : "bg-gray-50 border border-gray-200"
-          } p-5 sm:p-6 rounded-xl space-y-4`}
+          } p-6 rounded-xl space-y-4`}
         >
-          {/* Honeypot (offscreen field) */}
-          <div
-            style={{
-              position: "absolute",
-              left: "-9999px",
-              top: "auto",
-              width: "1px",
-              height: "1px",
-              overflow: "hidden",
-            }}
-          >
-            <label htmlFor="company">Company</label>
+          {/* Honeypot */}
+          <div className="absolute -left-2499.75px top-auto w-0 h-0 overflow-hidden">
             <input
-              id="company"
               type="text"
               name="honeypot"
               value={formData.honeypot}
@@ -168,41 +181,29 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
             />
           </div>
 
-          {/* Form Title (only when embedded) */}
           {embedded && (
-            <div className="mb-1">
+            <div>
               <h3 className="text-base font-semibold text-gray-900">
                 Get Free Estimation
               </h3>
-              <p className="text-xs text-gray-600 mt-1">
-                Fill the details. We&apos;ll call you back.
+              <p className="text-xs text-gray-600">
+                Fill the details. We will call you back.
               </p>
             </div>
           )}
 
-          {/* Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Name */}
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Name *
-              </label>
               <input
-                type="text"
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 disabled={isLoading}
-                autoComplete="name"
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
+                placeholder="Your name *"
+                className={`w-full px-4 py-2.5 border rounded-lg ${
                   errors.name ? "border-red-500" : "border-gray-300"
-                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
-                placeholder="Your name"
-                required
+                }`}
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -211,82 +212,58 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
 
             {/* Phone */}
             <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Contact Number *
-              </label>
               <input
-                type="tel"
-                inputMode="numeric"
-                id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 disabled={isLoading}
-                autoComplete="tel"
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
+                inputMode="numeric"
+                placeholder="Mobile number *"
+                className={`w-full px-4 py-2.5 border rounded-lg ${
                   errors.phone ? "border-red-500" : "border-gray-300"
-                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
-                placeholder="10-digit mobile number"
-                required
+                }`}
               />
               {errors.phone && (
                 <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
               )}
             </div>
 
-            {/* Location (full width) */}
+            {/* Location */}
             <div className="sm:col-span-2">
-              <label
-                htmlFor="location"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Location *
-              </label>
               <input
-                type="text"
-                id="location"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 disabled={isLoading}
-                autoComplete="address-level2"
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition ${
+                placeholder="Location in Chennai *"
+                className={`w-full px-4 py-2.5 border rounded-lg ${
                   errors.location ? "border-red-500" : "border-gray-300"
-                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
-                placeholder="Your location in Chennai"
-                required
+                }`}
               />
               {errors.location && (
-                <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.location}
+                </p>
               )}
             </div>
 
-            {/* Message (full width) */}
+            {/* Message */}
             <div className="sm:col-span-2">
-              <label
-                htmlFor="message"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Message *
-              </label>
               <textarea
-                id="message"
                 name="message"
                 rows={3}
                 value={formData.message}
                 onChange={handleChange}
                 disabled={isLoading}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent outline-none transition resize-none ${
+                placeholder="Project details *"
+                className={`w-full px-4 py-2.5 border rounded-lg resize-none ${
                   errors.message ? "border-red-500" : "border-gray-300"
-                } ${isLoading ? "opacity-60 cursor-not-allowed" : ""}`}
-                placeholder="Example: 2BHK interior painting, terrace waterproofing..."
-                required
+                }`}
               />
               {errors.message && (
-                <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.message}
+                </p>
               )}
             </div>
           </div>
@@ -297,22 +274,14 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
             </div>
           )}
 
-          {/* Submit button RIGHT aligned */}
           <div className="flex justify-end">
             <Button
               type="submit"
               variant="primary"
-              className="px-6 py-3 text-base flex items-center justify-center gap-2"
               disabled={isLoading}
+              className="px-6 py-3"
             >
-              {isLoading ? (
-                <>
-                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Request"
-              )}
+              {isLoading ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </form>
@@ -321,16 +290,18 @@ export default function EstimationForm({ embedded = false, anchorId = "estimatio
   );
 
   if (embedded) {
-    return (
-      <div id={anchorId} className="w-full">
-        {content}
-      </div>
-    );
+    return <div className="w-full">{formUI}</div>;
   }
 
   return (
-    <section id={anchorId} className="py-16 md:py-24 bg-white">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">{content}</div>
+    <section
+      id={anchorId}
+      className="py-16 md:py-24 bg-white scroll-mt-24"
+      style={{ scrollMarginTop: 96 }}
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {formUI}
+      </div>
     </section>
   );
 }

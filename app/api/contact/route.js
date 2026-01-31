@@ -5,36 +5,37 @@ import EmailTemplate from "@/components/email/template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = `GT Home Solution <contact@gthomesolution.in>`;
+const FROM_EMAIL = "GT Home Solution <contact@gthomesolution.in>";
 
-const rateLimitMap = new Map();
+const rateLimitMap =
+  globalThis.rateLimitMap || new Map();
+if (!globalThis.rateLimitMap) {
+  globalThis.rateLimitMap = rateLimitMap;
+}
+
 const RATE_LIMIT_WINDOW = 60 * 1000;
 const MAX_REQUESTS = 5;
 
 function checkRateLimit(ip) {
   const now = Date.now();
-  const record = rateLimitMap.get(ip);
+  const windowStart = now - RATE_LIMIT_WINDOW;
 
-  if (!record) {
-    rateLimitMap.set(ip, { count: 1, timestamp: now });
-    return true;
-  }
+  const records = rateLimitMap.get(ip) || [];
+  const recent = records.filter((ts) => ts > windowStart);
 
-  if (now - record.timestamp > RATE_LIMIT_WINDOW) {
-    rateLimitMap.set(ip, { count: 1, timestamp: now });
-    return true;
-  }
+  if (recent.length >= MAX_REQUESTS) return false;
 
-  if (record.count >= MAX_REQUESTS) return false;
-
-  record.count++;
+  recent.push(now);
+  rateLimitMap.set(ip, recent);
   return true;
 }
 
 export async function POST(req) {
   try {
-    const ipHeader = req.headers.get("x-forwarded-for") || "unknown";
-    const ip = ipHeader.split(",")[0].trim();
+    const ip =
+      req.headers.get("x-real-ip") ||
+      req.headers.get("x-forwarded-for")?.split(",")[0] ||
+      "unknown";
 
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
@@ -43,39 +44,46 @@ export async function POST(req) {
       );
     }
 
-    const body = await req.json();
+    const raw = await req.json();
+
+    const body = {
+      name: String(raw.name || "").trim(),
+      phone: String(raw.phone || "").replace(/\D/g, "").slice(-10),
+      location: String(raw.location || "").trim(),
+      message: String(raw.message || "").trim(),
+      honeypot: raw.honeypot || "",
+    };
 
     if (body.honeypot) {
       return NextResponse.json({ success: true });
     }
 
     const result = contactSchema.safeParse(body);
+
     if (!result.success) {
       return NextResponse.json(
-        { success: false, error: result.error.errors?.[0]?.message || "Invalid input" },
+        { success: false, error: "Invalid input" },
         { status: 400 }
       );
     }
-
-    const data = result.data;
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: ["contact@gthomesolution.in"],
       bcc: ["admin@gthomesolution.in"],
-      subject: `New Estimation Request - ${data.name}`,
+      subject: `New Estimation Request - ${body.name}`,
       react: EmailTemplate({
-        name: data.name,
-        phone: data.phone,
-        location: data.location,
-        message: data.message,
+        name: body.name,
+        phone: body.phone,
+        location: body.location,
+        message: body.message,
       }),
     });
 
     if (error) {
       console.error("Resend error:", error);
       return NextResponse.json(
-        { success: false, error: "Email send failed. Try again." },
+        { success: false, error: "Email send failed." },
         { status: 500 }
       );
     }
@@ -84,7 +92,7 @@ export async function POST(req) {
   } catch (err) {
     console.error("Contact form error:", err);
     return NextResponse.json(
-      { success: false, error: "Something went wrong. Try again." },
+      { success: false, error: "Something went wrong." },
       { status: 500 }
     );
   }
