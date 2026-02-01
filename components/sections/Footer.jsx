@@ -1,7 +1,15 @@
+'use client'
+
 import Link from "next/link";
 import { siteConfig, navLinks } from "@/lib/site";
 
 export function Footer() {
+
+  const onEstimationClick = () => {
+    window.scrollTo({ top: 300, behavior: "smooth" });
+    closeMenu();
+  };
+
   return (
     <footer className="bg-[#1e3a5f] text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,7 +37,8 @@ export function Footer() {
               ))}
               <li>
                 <Link
-                  href="/"
+                  href="#estimation"
+                  onClick={onEstimationClick}
                   className="text-gray-300 hover:text-white transition text-sm"
                 >
                   Get Estimation
