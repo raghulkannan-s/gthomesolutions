@@ -6,8 +6,7 @@ import { siteConfig, navLinks } from "@/lib/site";
 export function Footer() {
 
   const onEstimationClick = () => {
-    window.scrollTo({ top: 300, behavior: "smooth" });
-    closeMenu();
+    window.scrollTo("#estimation", 0);
   };
 
   return (
