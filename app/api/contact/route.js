@@ -5,7 +5,7 @@ import EmailTemplate from "@/components/email/template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "GT Home Solution <contact@gthomesolution.in>";
+const FROM_EMAIL = "GT Home Solution <gthomesolutions24@gmail.com>";
 
 const rateLimitMap =
   globalThis.rateLimitMap || new Map();
@@ -69,8 +69,8 @@ export async function POST(req) {
 
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: ["contact@gthomesolution.in"],
-      bcc: ["admin@gthomesolution.in"],
+      to: ["gthomesolutions24@gmail.com"],
+      bcc: ["gthomesolutions24@gmail.com"],
       subject: `New Estimation Request - ${body.name}`,
       react: EmailTemplate({
         name: body.name,
