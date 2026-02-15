@@ -5,7 +5,7 @@ import EmailTemplate from "@/components/email/template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "GT Home Solution <gthomesolutions24@gmail.com>";
+const FROM_EMAIL = "GT Home Solution <noreply@gthomesolution.in>";
 
 const rateLimitMap =
   globalThis.rateLimitMap || new Map();
