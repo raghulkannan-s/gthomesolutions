@@ -35,7 +35,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-[78vh] lg:min-h-[84vh] pt-20 overflow-hidden">
+    <section className="relative min-h-[84vh] lg:min-h-screen pt-20 overflow-hidden">
       <HeroBackgroundSlider slides={heroSlides} activeIndex={activeIndex} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
